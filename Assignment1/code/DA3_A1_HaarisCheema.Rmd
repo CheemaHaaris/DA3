@@ -16,6 +16,7 @@ library(modelsummary)
 library(fixest)
 library(caret)
 library(gridExtra)
+library(kableExtra)
 
 # Loading the data
 dataset <- read_csv(url('https://raw.githubusercontent.com/CheemaHaaris/DA3/main/Assignment1/data/morg-2014-emp.csv?token=GHSAT0AAAAAABQS6MPX3ZY76CICUOB5R2WSYPQHFJQ'))
@@ -24,13 +25,16 @@ dataset <- read_csv(url('https://raw.githubusercontent.com/CheemaHaaris/DA3/main
 
 # Introduction
 
-The aim of this assignment is to use the [cps-earnings dataset](https://osf.io/g8p9j/) to compare and contrast different predictive models (using linear regressions) based on multiple criterion such as RMSE and BIC in the full sample and the cross-validated RMSE. Also, the final section will discuss the model complexity and the corresponding performance.
-  This analysis will focus on **Financial Specialists** and the target variable will be **earnings per hour**, whereas for predictors, demographic variables such as age, gender, education level, race and marital status will be used. The reason for the choice of these predictors can be viewed in the appendix.
+The aim of this assignment is to use the [cps-earnings dataset](https://osf.io/g8p9j/) to compare and contrast different predictive models (using linear regressions) based on multiple criterion such as RMSE and BIC in the full sample and the cross-validated RMSE. Also, the final section will discuss the model complexity and performance.
+  This analysis will focus on **Financial Specialists** and the target variable will be **earnings per hour**, whereas for predictors, demographic variables such as age, gender, education level, race and marital status will be used.
 
+# Choice of Predictor Variables
 
-# Data Cleaning, Manipulation and EDA
+Firstly, highest degree attained (education level) was included as one can expect that with every successive degree, you acquire more knowledge and become worth more and paid better. Next demographic variables such as age and sex were kept to  include any patterns within their respective categories due to any potential discrimination. Age was also included as it is expected to be strongly and positively correlated with one's earnings. Lastly, current marital status was also included to explore whether familial responsibilities have an association with how much one earns.
 
-As far as the categorical variables were concerned, their respective distributions were analyzed and consequently some categories with relatively low frequency were either dropped or clubbed together. The minimum earning per hour was set at 0, and a single value of 500, was dropped as it was drastically different from all of the observations in the data and it is possible that the input value could have been an error. Next, variable distributions were chalked out and for the age variable, the functional form was explored via a lowess curve against the target variable. 
+# Data Cleaning, Manipulation and Exploratory Data Analysis
+
+As far as the categorical variables were concerned, their respective distributions were analyzed and consequently some categories with relatively low frequency were either dropped or clubbed together. The minimum earning per hour was set at 0, and a single value of 500, was dropped as it was drastically different from all of the observations in the data and it is possible that the input value could have been an error. Next, a summary output for the relevant variables was created (Fig 1). Moreover, variable distributions were chalked out (Fig 2 & 3) and for the age variable, the functional form was explored via a lowess curve against the target variable (Fig 4). It was decided to incorporate the quadratic and cubic terms for age.
 
 ```{r, include=FALSE}
 
@@ -41,10 +45,10 @@ df <- subset(dataset,dataset$occ2012 == 0800 |dataset$occ2012 == 0810 |dataset$o
 
 # Selecting the relevant variables for analysis 
 
-df <- df[, c(5:9, 11:13)]
+df <- df[, c(6:9, 11:13)]
 
 
-##### Factorising the categorical vars and checking observations in each category
+##### Factoring the categorical vars and checking observations in each category
 
 df$grade92 <- as.factor(df$grade92)
 
@@ -181,7 +185,7 @@ p1 <- ggplot(df, aes(x = w)) +
   theme( panel.grid.minor.x = element_blank(), 
          plot.title = element_text( size = 12, hjust = 0.5 ) ) +
    scale_y_continuous(expand = c(0.01,0.01),labels = scales::percent_format(accuracy = 1)) +
-   scale_x_discrete(labels = c("High School/Diploma", "College","Associate degree","Bachelors", "Masters" ))
+   scale_x_discrete(labels = c("High School", "College","Associate degree","Bachelors", "Masters" ))
 
  
  
@@ -249,7 +253,7 @@ p1 <- ggplot(df, aes(x = w)) +
 
  # Age
  p7 <- ggplot(data = df, aes(x = age, y = w )) +
-   geom_point( color = 'blue', size = 1.5,  shape = 16, alpha = 0.8, show.legend=F, na.rm = TRUE) + 
+   geom_point( color = 'navyblue', size = 1.5,  shape = 16, alpha = 0.8, show.legend=F, na.rm = TRUE) + 
    geom_smooth(method="loess", se=F, colour='red', size=1, span=0.9) +
    labs(x = "Age (years)",y = "Earning per hour") +
    theme_bw() +
@@ -261,10 +265,10 @@ p1 <- ggplot(df, aes(x = w)) +
  
  p8 <- ggplot(data = df, aes(x = age, y = w )) +
     geom_smooth( aes(colour='red'), method="loess", formula = y ~ x,se=F, size=1) +
-    geom_smooth( aes(colour='black'), method="lm", formula = y ~ poly(x,2) , se=F, size=1) +
-    geom_point( aes( y = w ) , color = 'blue', size = 1,  shape = 16, alpha = 0.8, show.legend=F, na.rm = TRUE) + 
+    geom_smooth( aes(colour='gray50'), method="lm", formula = y ~ poly(x,2) , se=F, size=1) +
+    geom_point( aes( y = w ) , color = 'navyblue', size = 1,  shape = 16, alpha = 0.8, show.legend=F, na.rm = TRUE) + 
     labs(x = "Age (years)",y = "Earning per hour") +
-    scale_color_manual(name="", values=c('red','black'),labels=c("Lowess in age","Quadratic in age")) +
+    scale_color_manual(name="", values=c('red','gray50'),labels=c("Lowess in age","Quadratic in age")) +
     theme_bw() +
     scale_x_continuous(limits = c(15,65), breaks = seq(15,65, 10)) +
     scale_y_continuous(limits = c(0,120), breaks = seq(0,120, 30)) +
@@ -275,13 +279,13 @@ p1 <- ggplot(df, aes(x = w)) +
  
  p9 <- ggplot(data = df, aes(x = age, y = w )) +
     geom_smooth( aes(colour='red'), method="loess", formula = y ~ x,se=F, size=1) +
-    geom_smooth( aes(colour='black'), method="lm", formula = y ~ poly(x,3) , se=F, size=1) +
-    geom_point( aes( y = w ) , color = 'blue', size = 1,  shape = 16, alpha = 0.8, show.legend=F, na.rm = TRUE) + 
+    geom_smooth( aes(colour='gray50'), method="lm", formula = y ~ poly(x,3) , se=F, size=1) +
+    geom_point( aes( y = w ) , color = 'navyblue', size = 1,  shape = 16, alpha = 0.8, show.legend=F, na.rm = TRUE) + 
     labs(x = "Age (years)",y = "Earning per hour") +
-    scale_color_manual(name="", values=c('red','black'),labels=c("Lowess in age","Cubic in age")) +
+    scale_color_manual(name="", values=c('red','gray50'),labels=c("Lowess in age","Cubic in age")) +
     theme_bw() +
-   # scale_x_continuous(limits = c(15,65), breaks = seq(15,65, 10)) +
-    #scale_y_continuous(limits = c(0,120), breaks = seq(0,120, 30)) +
+    scale_x_continuous(limits = c(15,65), breaks = seq(15,65, 10)) +
+    scale_y_continuous(limits = c(0,120), breaks = seq(0,120, 30)) +
     theme(legend.position = c(0.5,0.8),
           legend.direction = "horizontal",
           legend.background = element_blank(),
@@ -290,9 +294,9 @@ p1 <- ggplot(df, aes(x = w)) +
 ```
 
 
-# Comparing and evaluating the predictive models
+# Comparing model performance and relationship with model complexity
 
-The models were built with increasing levels of complexity. The variables contained in each model can be viewed in the appendix. Based on the full sample comparison (please see the appendix), we can see that model 4 (the most complex one), has the lowest RMSE, which indicates that we expect it to have the lowest prediction error among all four models. Even when we evaluate the best prediction model based on the BIC metric, we can see that the metric has the lowest value for model 4, despite the fact that it is the most complex model. This indicates that even after the penalty imposed on the higher model complexity of model 4, it still has a lower BIC value due to its superior model fit. Lastly, the cross-validated RMSE also points towards model 4 as the best choice, as it has the lowest average RMSE. Model 4 has more or less the same RMSE variation amongst the different folds compared to model 3 and also has a slightly lower average RMSE, so it will remain our preferred model choice.
+The models were built with increasing levels of complexity. The variables contained in each model can be viewed in the appendix (pg 2). Based on the full sample comparison (Fig 5), we can see that model 4 (the most complex one), has the lowest RMSE, which indicates that we expect it to have the lowest prediction error among all four models. Even when we evaluate the models based on the BIC metric, we can see that the metric has the lowest value for model 4, despite the fact that it is the most complex model. This indicates that even after the penalty imposed due to the higher model complexity of model 4, it still has a lower BIC value due to its superior model fit. Lastly, the cross-validated RMSE (Fig 6) also points towards model 4 as the best choice, as it has the lowest average RMSE. Model 4 has more or less the same RMSE variation amongst the different folds compared to model 3 and also has a slightly lower average RMSE, so it will remain our preferred model choice.
 
 
 ```{r, include=FALSE}
@@ -359,6 +363,8 @@ The models were built with increasing levels of complexity. The variables contai
  colnames(cv_mat)<-c("Resample","Model1", "Model2", "Model3", "Model4")
 ```
 
+
+Based on the visual in the appendix (Fig 7), we can see that as the number of explanatory variables (model complexity) increases, the average RMSE of the test samples decreases, resulting in an increasingly better fit for the prediction. Initially there is a significant decrease in the RMSE for an increase in the explanatory variables, however, this becomes less steep for greater number of explanatory variables. This is because more complex models tend to over fit the original data and may represent detailed patterns in the original data and not in the live data which we are interested in. We can expect that for even more complex models, the average RMSE will start to increase.
 ```{r, include=FALSE}
  # Show model complexity and out-of-sample RMSE performance
  m_comp <- c()
@@ -373,7 +379,7 @@ The models were built with increasing levels of complexity. The variables contai
 
 p10 <- ggplot( m_comp , aes( x = complexity , y = RMSE ) ) +
    geom_point(color='red',size=2) +
-   geom_line(color='blue',size=0.5)+
+   geom_line(color='navyblue',size=0.5)+
    labs(x='Number of explanatory variables',y='Averaged RMSE on test samples',
         title='Prediction performance and model compexity') +
    theme_bw() 
@@ -382,16 +388,14 @@ p10 <- ggplot( m_comp , aes( x = complexity , y = RMSE ) ) +
 
 \newpage
 
-# Appendix
-
-# Data Summary
-
+## Appendix
+*Fig 1: Data Summary Table*
 ```{r, echo=FALSE}
-ds
+
+# Running the data summary
+ds %>% 
+  kableExtra::kable_styling(latex_options = "hold_position")
 ```
-
-
-# Choice of Predictor Variables
 
 
 # Model Details
@@ -401,49 +405,53 @@ ds
 * Model 3: Age, Age squared, Sex, Education Level, Race and Current Marital Status
 * Model 4: Age, Age squared, Age cubic, Sex, Education Level, Race, Current Marital Status and interaction terms between Sex and Education Level and Sex and Age
 
-
-
 \newpage
 
+*Fig 2: Distribution of Target Variable*
 
-# Distribution of Target Variable
 
-```{r, echo=FALSE, message=FALSE}
+```{r, echo=FALSE, message=FALSE, fig.align='center'}
 p1
 ```
+\newpage
 
+*Fig 3: Distributions of Predictor Variables*
 
-# Distributions of Predictor Variables
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height= 9, fig.width= 5, fig.align='center'}
 grid.arrange(p2,p3,p4,p5,p6, ncol =1)
 ```
 \newpage
 
-# Association between Target Variable and Age ( Lowess Explorations)
+*Fig 4: Association between Target Variable and Age ( Lowess Explorations)*
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.height= 9, fig.align='center'}
 grid.arrange(p7,p8,p9)
 ```
 
 \newpage
 
-# Comparing Predictive Models - full sample RMSE and BIC
+*Fig 5: Comparing Predictive Models - full sample RMSE and BIC*
 
 ```{r, echo=FALSE}
  fitstat_register("k", function(x){length( x$coefficients ) - 1}, "No. Variables")
- etable( reg1 , reg2 , reg3 , reg4 , fitstat = c('aic','bic','rmse','r2','n','k') ) 
+
+ kable(etable( reg1 , reg2 , reg3 , reg4 , fitstat = c('aic','bic','rmse','r2','n','k')),
+       "latex") %>%
+   kable_styling(latex_options = c("hold_position", "scale_down"))  
+
 ```
 \newpage
 
-# Comparing Predictive Models - cross-validated RMSE
+*Fig 6: Comparing Predictive Models - cross-validated RMSE*
 
 ```{r, echo=FALSE}
- cv_mat  
+kable(cv_mat, 
+      "latex") %>% 
+  kable_styling(latex_options = "hold_position") 
 ```
 
 \newpage
-# Model Complexity and Performance
+*Fig 7: Model Complexity and Performance*
 
 ```{r, echo=FALSE}
 p10
