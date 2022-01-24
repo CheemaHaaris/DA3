@@ -413,6 +413,10 @@ ds %>%
 ```{r, echo=FALSE, message=FALSE, fig.align='center'}
 p1
 ```
+*The distribution for the target variable resembles a normal curve with the exception of a few extreme values*  
+*These extreme values are not frequent enough nor are they 'extreme' enough to warrant a log-transformation in this case*  
+*Generally wage distributions are considered to be right-tailed but for this subsetted data, the distribution does not resemble a typical wage distribution as there aren't too extreme values as mentioned above*
+
 \newpage
 
 *Fig 3: Distributions of Predictor Variables*
@@ -435,11 +439,19 @@ grid.arrange(p7,p8,p9)
 ```{r, echo=FALSE}
  fitstat_register("k", function(x){length( x$coefficients ) - 1}, "No. Variables")
 
- kable(etable( reg1 , reg2 , reg3 , reg4 , fitstat = c('aic','bic','rmse','r2','n','k')),
+varnames <- c("Age")
+
+ kable(etable( reg1 , reg2 , reg3 , reg4 , fitstat = c('aic','bic','rmse','r2','n','k'), depvar = F),
        "latex") %>%
    kable_styling(latex_options = c("hold_position", "scale_down"))  
 
 ```
+
+*lower_BA reflects those individuals with a degree lower than a bachelors*  
+*MA reflects those individuals with a masters degree*  
+*current_marital indicates the current marital status of the individual*  
+*agesq and agecu are the quadratic and cubic terms respectively for the age variable*  
+
 \newpage
 
 *Fig 6: Comparing Predictive Models - cross-validated RMSE*
