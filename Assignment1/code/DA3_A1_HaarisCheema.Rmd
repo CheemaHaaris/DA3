@@ -439,11 +439,16 @@ grid.arrange(p7,p8,p9)
 ```{r, echo=FALSE}
  fitstat_register("k", function(x){length( x$coefficients ) - 1}, "No. Variables")
 
-varnames <- c("Age")
+ 
+ kable( etable( reg1, reg2, reg3, reg4,
+               se.below = T,
+               fitstat = c('aic','bic','rmse','n','k'),
+               se.row = F,
+               depvar = F ) , 
+       col.names = c('(1)','(2)','(3)','(4)'),
+       "latex") %>% 
+   kable_styling(latex_options = c("scale_down","hold_position"))
 
- kable(etable( reg1 , reg2 , reg3 , reg4 , fitstat = c('aic','bic','rmse','r2','n','k'), depvar = F),
-       "latex") %>%
-   kable_styling(latex_options = c("hold_position", "scale_down"))  
 
 ```
 
